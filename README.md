@@ -2,6 +2,15 @@
 
 > THIS IS AN OLD PROJECT FOR [CS50W](https://cs50.harvard.edu/web/2020/)
 
+## Installation and usage
+
+``` bash
+git clone https://github.com/araujoviana/copperknight
+cd copperknight
+
+python manage.py runserver
+```
+
 ## Distinctiveness and Complexity
 
 ### The Concept
