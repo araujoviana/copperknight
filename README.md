@@ -1,5 +1,7 @@
 # copperknight
 
+> THIS IS AN OLD PROJECT FOR [CS50W](https://cs50.harvard.edu/web/2020/)
+
 ## Distinctiveness and Complexity
 
 ### The Concept
