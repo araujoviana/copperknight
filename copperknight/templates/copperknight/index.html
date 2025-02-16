@@ -1,0 +1,58 @@
+{% extends "copperknight/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+{% if message %}
+<br>
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+{% endif %}
+
+<br>
+<div style="display:flex;align-items: center">
+  <h1>Welcome to <div style="text-shadow: 1px 1px 1px red, 2px 2px 1px #893a20;">copperknight</div></h1>
+  <div style="margin-left: auto;">
+    {% if user.is_authenticated %}
+    <h5><a class="nav-link" href="{% url 'draw' %}">Draw Your Own Art!</a></h5>
+    {% else %}
+    <h5>Log in to draw you own art!</h5>
+    {% endif %}
+    <h5><a class="nav-link" href="{% url 'showcase' %}">Explore Our Art Gallery</a></h5>
+  </div>
+</div>
+
+<br>
+<h4>The latest addition to our gallery:</h4>
+<br>
+<div class="full-art" style="display: flex;justify-content: center;">
+  <div class="gallery-item" style="display: inline-block;text-align: center; vertical-align: top; margin-right: 20px;">
+      <h3 style="text-align:center;font-weight:bold">" {{ opus.title }} "</h3>
+      {% if opus.created_by %}
+        <p><a href="{% url 'profile' opus.created_by %}">By: {{ opus.created_by }}</a></p>
+      {% else %}
+        <p>By: {{ opus.created_by }}</p>
+      {% endif %}
+      <p>Created at: {{ opus.created_at }}</p>
+      <h5 style="text-rendering: auto;" class="hidden" id="opusimage{{ forloop.counter }}">{{ opus.base64_image }}</h5>
+      <div id="image-container{{ forloop.counter }}" class="gallery-container">
+          <img id="image{{ forloop.counter }}" src="" alt="Opus" class="gallery-img">
+      </div>
+      <br> <br> <br>
+  </div>
+  <br>
+</div>
+
+<script>
+  function baseToImg() {
+      var base64ImageURL = document.getElementById("opusimage").textContent;
+      var imageElement = document.getElementById("image");
+      imageElement.src = base64ImageURL;
+  }
+  window.addEventListener("load", baseToImg);
+</script>
+{% endblock %}

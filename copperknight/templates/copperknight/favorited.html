@@ -1,0 +1,63 @@
+{% extends "copperknight/layout.html" %}
+{% load static %}
+
+{% block body %}
+
+    <br>
+    <h1 style="text-align:center;font-weight:bold;color:white;text-shadow: 1px 1px 1px red, 2px 2px 1px black;">Favorited Art</h1>
+    <br>
+    <div class="full-art">
+    {% for opus in page_obj %}
+        <div class="gallery-item" style="display: inline-block; text-align: center; vertical-align: top; margin-right: 20px;">
+            <h3 style="text-align:center;font-weight:bold">" {{ opus.title }} "</h3>
+            {% if opus.created_by %}
+            <p><a href="{% url 'profile' opus.created_by %}">By: {{ opus.created_by }}</a></p>
+            {% else %}
+            <p>By: {{ opus.created_by }}</p>
+            {% endif %}
+
+            <p>Created at: {{ opus.created_at }}</p>
+            <h5 style="text-rendering: auto;" class="hidden" id="opusimage{{ forloop.counter }}">{{ opus.base64_image }}</h5>
+            <div id="image-container{{ forloop.counter }}" class="gallery-container">
+                <img id="image{{ forloop.counter }}" src="" alt="Opus" class="gallery-img">
+            </div>
+            <br> <br> <br>
+            <form id="deleteFav" method="post" action="/killopus/">
+                {% csrf_token %}
+                <input type="hidden" name="base64_Image" value="{{ opus.base64_image }}" />
+                <button class="btn btn-danger" type="submit">Delete Favorite</button>
+            </form>
+        </div>
+        <br>
+    {% endfor %}
+    </div>
+
+    <br>
+
+    <div class="pagination justify-content-center" >
+        {% if page_obj.has_previous %}
+            <a class="page-link btn btn-light" href="?page={{ page_obj.previous_page_number }}" style="color:black">Previous</a>
+        {% else %}
+            <span class="page-link btn btn-light disabled" style="color:black">Previous</span>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a class="page-link btn btn-light" href="?page={{ page_obj.next_page_number }}" style="color:black">Next</a>
+        {% else %}
+            <span class="page-link btn btn-light disabled" style="color:black">Next</span>
+        {% endif %}
+    </div>
+
+    <script>
+        // Turns base64 into an actual image
+        function baseToImg() {
+            {% for opus in page_obj %}
+                var base64ImageURL = "{{ opus.base64_image }}";
+                var imageElement = document.getElementById("image{{ forloop.counter }}");
+                imageElement.src = base64ImageURL;
+            {% endfor %}
+        }
+
+        window.addEventListener("load", baseToImg);
+    </script>
+
+{% endblock %}

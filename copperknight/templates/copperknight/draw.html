@@ -1,0 +1,1069 @@
+{% extends "copperknight/layout.html" %} {% load static %} {% block body %}
+<br />
+<h1
+  contenteditable="true"
+  placeholder="Drawing Name"
+  id="drawingTitle"
+  style="
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    color: black;
+  "
+>
+  My Drawing
+</h1>
+
+<!-- The Drawing Canvas -->
+<div class="canvas-container">
+  <canvas id="drawingCanvas" class="maincanvas" alt="~~canvas here~~"></canvas>
+</div>
+<br />
+
+<div class="canvasTools-container">
+  <div class="canvasTools">
+    <button onclick="importImage()" class="btn btn-primary btn-sm">
+      Import Image
+    </button>
+    <!-- New button for importing an image -->
+
+    <button onclick="changeResForm()" class="btn btn-secondary btn-sm">
+      Change resolution
+    </button>
+
+    <br />
+    <br />
+    <button
+      id="clearButton"
+      class="btn btn-danger btn-sm"
+      title="*Clears the canvas and makes it transparent"
+    >
+      <strong><i>Full Clear*</i></strong>
+    </button>
+    <button
+      id="whiteButton"
+      onclick="whiteClear()"
+      class="btn btn-danger btn-sm"
+    >
+      <strong>White Fill</strong>
+    </button>
+
+    <form id="Resform" class="hidden">
+      <br />
+      <label for="width">Width:</label>
+      <input
+        style="width: 100px"
+        type="text"
+        id="width"
+        name="width"
+        pattern="[0-4]?[0-9]{1,2}|500"
+        title="Please enter a number between 0 and 500"
+        placeholder="300"
+        required
+      />
+      <label for="height">Height:</label>
+      <input
+        style="width: 100px"
+        type="text"
+        id="height"
+        name="height"
+        pattern="[0-4]?[0-9]{1,2}|500"
+        title="Please enter a number between 0 and 500"
+        placeholder="300"
+        required
+      />
+      <br />
+      <span class="badge badge-warning">Values over 600 may cause bugs</span>
+      <br />
+      <input
+        type="submit"
+        class="btn btn-danger btn-sm"
+        value="Submit and Full Clear"
+      />
+    </form>
+    <br />
+    <br />
+
+    <button onclick="saveDrawing()" class="btn btn-primary btn-sm">
+      Save as PNG
+    </button>
+    <button onclick="baseDrawing()" class="btn btn-primary btn-sm">
+      Upload and save to Gallery
+    </button>
+    <label>
+      <input
+        type="checkbox"
+        id="privateCheckbox"
+        onchange="updatePrivacy()"
+        title="Won't upload art to showcase if True"
+      />
+      Private*
+    </label>
+
+    <br />
+    <span class="badge badge-warning"
+      ><strong>Drawing while scrolled is not recommended</strong></span
+    >
+  </div>
+
+  <div class="canvasTools">
+    <button onclick="toggleEraser()" class="btn btn-warning btn-sm">
+      Eraser
+    </button>
+    <label for="eraserCheckbox">
+      <input
+        id="eraserCheckbox"
+        class="hidden"
+        type="checkbox"
+        onclick="return false;"
+      />
+    </label>
+
+    <button onclick="changeColForm()" class="btn btn-secondary btn-sm">
+      Brush color
+    </button>
+
+    <div
+      id="colorPresets"
+      class="dropup brush-color-dropdown"
+      style="display: inline-block"
+    >
+      <button
+        class="btn btn-primary btn-sm dropdown-toggle"
+        type="button"
+        id="brushColorDropdown"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+        Color Presets
+      </button>
+      <div class="dropdown-menu" aria-labelledby="brushColorDropdown">
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('black')"
+          >Black</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('white')"
+          >White</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('red')"
+          >Red</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('green')"
+          >Green</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('blue')"
+          >Blue</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('yellow')"
+          >Yellow</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('purple')"
+          >Purple</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('orange')"
+          >Orange</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('pink')"
+          >Pink</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('cyan')"
+          >Cyan</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('magenta')"
+          >Magenta</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('brown')"
+          >Brown</a
+        >
+        <a class="dropdown-item" href="#" onclick="changeBrushColor('gray')"
+          >Gray</a
+        >
+      </div>
+    </div>
+    <br />
+    <br />
+    <button
+      onclick="toggleFillBrush()"
+      class="btn btn-info btn-sm"
+      id="fillBrushButton"
+      title="*Toggles off after canvas click, does not fill empty backgrounds"
+    >
+      Fill*
+    </button>
+
+    <div class="btn-group dropright">
+      <button
+        class="btn btn-info btn-sm dropdown-toggle"
+        type="button"
+        title="Click and hold to make shapes on the canvas"
+        id="drawingMenu"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+        Draw*
+      </button>
+      <div class="dropdown-menu" aria-labelledby="drawingMenu">
+        <button onclick="startDrawingLine()" class="dropdown-item">Line</button>
+        <button
+          onclick="startDrawingCube()"
+          class="dropdown-item"
+          title="May not work properly"
+        >
+          Square*
+        </button>
+        <button onclick="startDrawingCircle()" class="dropdown-item">
+          Circle
+        </button>
+      </div>
+    </div>
+
+    <div class="brushrange">
+      <label for="brushSize">Brush Size:</label>
+      <input
+        type="range"
+        id="brushSize"
+        name="brushSize"
+        min="1"
+        max="40"
+        value="1"
+        step="1"
+        onchange="changeBrushSize(this.value)"
+      />
+      <span id="brushSizeValue">1</span>
+    </div>
+
+    <div id="Colform" class="hidden">
+      <br />
+      <input type="text" id="colorInput" placeholder="#5d606a" />
+      <button
+        id="colorButton"
+        class="btn btn-success btn-sm"
+        onclick="storeColor()"
+        type="button"
+      >
+        Change Color
+      </button>
+    </div>
+
+    <!-- Shows the custom colors saved by the user -->
+    <div id="lastcolors"></div>
+  </div>
+
+  <div class="canvasTools">
+    <div class="btn-group dropdown">
+      <button
+        class="btn btn-info btn-sm dropdown-toggle"
+        title="Records whats drawn on the canvas, does NOT store fills, WILL link separate drawings together"
+        type="button"
+        id="dropdownMenuButton"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+      >
+        Record*
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <button onclick="replayDrawing()" class="dropdown-item" type="button">
+          Paste to Canvas
+        </button>
+        <button
+          onclick="toggleRecording()"
+          id="recordButton"
+          class="dropdown-item"
+          type="button"
+        >
+          Start
+        </button>
+        <button onclick="resetDrawing()" class="dropdown-item">
+          Reset Recording
+        </button>
+      </div>
+    </div>
+
+    <button
+      onclick="customizeGradient()"
+      class="btn btn-warning btn-sm"
+      title="Will also clean the Canvas"
+    >
+      Add Gradient*
+    </button>
+    <br />
+    <br />
+    <button onclick="getBase()" class="btn btn-info btn-sm">Copy Base64</button>
+
+    <br />
+    <br />
+    <span
+      id="recordingIndicator"
+      class="blink"
+      style="display: none; font-weight: bold"
+      >RECORDING</span
+    >
+  </div>
+</div>
+
+<script>
+  // For changing the resolution
+  const resform = document.getElementById("Resform"); // for changing the resolution
+  const widthInput = document.getElementById("width");
+  const heightInput = document.getElementById("height");
+
+  // Creating the canvas
+  const canvas = document.getElementById("drawingCanvas");
+  const context = canvas.getContext("2d");
+
+  var submittedTexts = []; // last 5 colors stored here
+
+  const drawingData = []; // for storing recorded drawings temporarily
+
+  canvas.width = 300;
+  canvas.height = 300;
+  let brushSize = 2;
+
+  let isFilling = false; // for bucket fill tool
+  let fillStartX, fillStartY;
+
+  let isRecording = false;
+
+  let isPrivate = false;
+
+  let isDrawing = false;
+  let isErasing = false;
+  context.strokeStyle = "black";
+
+  let lineStartX, lineStartY;
+
+  context.fillStyle = "white"; // canvas comes pre-filled with white
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  resform.addEventListener("submit", function (event) {
+    // defines a new canvas resolution
+    event.preventDefault();
+
+    const newWidth = parseInt(widthInput.value);
+    const newHeight = parseInt(heightInput.value);
+
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    resform.style.display = "none";
+  });
+
+  // Event listeners for mouse actions
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+  canvas.addEventListener("mouseout", stopDrawing);
+
+  // Event listeners for mobile actions
+  canvas.addEventListener("touchstart", startDrawingMobile);
+  canvas.addEventListener("touchmove", drawMobile);
+  canvas.addEventListener("touchend", stopDrawing);
+
+  // Event listener for the clear button
+  const clearButton = document.getElementById("clearButton");
+  clearButton.addEventListener("click", clearCanvas);
+
+  // Event listener for the eraser button
+  const eraserButton = document.getElementById("eraserButton");
+  eraserButton.addEventListener("click", toggleEraser);
+
+  function whiteClear() {
+    // Clear the canvas by filling it with white color
+    context.fillStyle = "white";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function startDrawing(event) {
+    if (isFilling) {
+      // If fill brush is active, store the starting coordinates
+      fillStartX = event.clientX - canvas.offsetLeft;
+      fillStartY = event.clientY - canvas.offsetTop;
+      fill(fillStartX, fillStartY, context.strokeStyle);
+      isFilling = false; // Disable fill brush after one use
+      fillBrushButton.classList.remove("active");
+    } else {
+      // Continue with regular drawing
+      isDrawing = true;
+      context.beginPath();
+      context.moveTo(
+        event.clientX - canvas.offsetLeft,
+        event.clientY - canvas.offsetTop,
+      );
+    }
+  }
+
+  function startDrawingMobile(event) {
+    event.preventDefault();
+    if (isFilling) {
+      fillStartX = event.touches[0].clientX - canvas.offsetLeft;
+      fillStartY = event.touches[0].clientY - canvas.offsetTop;
+      fill(fillStartX, fillStartY, context.strokeStyle);
+      isFilling = false;
+      fillBrushButton.classList.remove("active");
+    } else {
+      isDrawing = true;
+      context.beginPath();
+      context.moveTo(
+        event.touches[0].clientX - canvas.offsetLeft,
+        event.touches[0].clientY - canvas.offsetTop,
+      );
+    }
+  }
+
+  function draw(event) {
+    if (isDrawing) {
+      if (isErasing) {
+        context.globalCompositeOperation = "destination-out"; // Erase
+        context.lineTo(
+          event.clientX - canvas.offsetLeft,
+          event.clientY - canvas.offsetTop,
+        );
+        context.stroke();
+      } else {
+        context.globalCompositeOperation = "source-over"; // Draw
+        context.lineTo(
+          event.clientX - canvas.offsetLeft,
+          event.clientY - canvas.offsetTop,
+        );
+        context.stroke();
+      }
+    }
+  }
+
+  function drawMobile(event) {
+    event.preventDefault();
+
+    if (isDrawing) {
+      if (isErasing) {
+        context.globalCompositeOperation = "destination-out"; // Erase
+        context.lineTo(
+          event.touches[0].clientX - canvas.offsetLeft,
+          event.touches[0].clientY - canvas.offsetTop,
+        );
+        context.stroke();
+      } else {
+        context.globalCompositeOperation = "source-over"; // Draw
+        context.lineTo(
+          event.touches[0].clientX - canvas.offsetLeft,
+          event.touches[0].clientY - canvas.offsetTop,
+        );
+        context.stroke();
+      }
+    }
+  }
+
+  function stopDrawing() {
+    isDrawing = false;
+  }
+
+  function clearCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // for toggling the resolution menu
+  function changeResForm() {
+    var resform = document.getElementById("Resform");
+    if (resform.style.display === "block") {
+      resform.style.display = "none";
+    } else {
+      resform.style.display = "block";
+    }
+  }
+
+  // for toggling the brush color menu
+  function changeColForm() {
+    var form = document.getElementById("Colform");
+    if (form.style.display === "block") {
+      form.style.display = "none";
+    } else {
+      form.style.display = "block";
+    }
+  }
+
+  function toggleEraser() {
+    isErasing = !isErasing;
+    var form = document.getElementById("eraserCheckbox");
+
+    if (form.style.display === "block") {
+      form.style.display = "none";
+    } else {
+      form.style.display = "block";
+    }
+    const eraserButton = document.getElementById("eraserButton");
+    const eraserCheckbox = document.getElementById("eraserCheckbox");
+    eraserCheckbox.checked = isErasing;
+  }
+
+  function changeColor() {
+    const colorInput = document.getElementById("colorInput");
+    const colForm = document.getElementById("Colform");
+    const hexCode = colorInput.value.trim();
+    colForm.style.display = "none";
+
+    // Checks if the entered value is a valid hex code
+    if (isValidHexCode(hexCode)) {
+      pencilColor = hexCode;
+      context.strokeStyle = pencilColor;
+    } else {
+      // If invalid hex code, reset to black
+      pencilColor = "black";
+      context.strokeStyle = pencilColor;
+      colorInput.value = "";
+      alert("Invalid hex code. Please enter a valid hex code.");
+    }
+  }
+
+  function isValidHexCode(hexCode) {
+    const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+    return hexRegex.test(hexCode);
+  }
+
+  // Stores the custom colors in the div 'last colors'
+  function storeColor() {
+    var colorInput = document.getElementById("colorInput");
+    var text = colorInput.value;
+    const hexCode = colorInput.value.trim();
+    submittedTexts.push(text);
+
+    // Keep a limited amount of colors
+    if (submittedTexts.length > 10) {
+      submittedTexts.shift(); // Remove the oldest text from the beginning of the array
+    }
+
+    var displayElement = document.getElementById("lastcolors");
+    displayElement.innerHTML = "";
+
+    for (var i = 0; i < submittedTexts.length; i++) {
+      var colorStoreElement = document.createElement("p");
+      colorStoreElement.textContent = submittedTexts[i];
+      colorStoreElement.style.color = submittedTexts[i];
+      console.log(submittedTexts[i]);
+      console.log(colorStoreElement);
+
+      colorStoreElement.addEventListener("click", function (event) {
+        if (isValidHexCode(this.textContent)) {
+          pencilColor = this.textContent;
+          console.log(pencilColor);
+          context.strokeStyle = pencilColor;
+        } else {
+          // Invalid hex code, reset to default color
+          pencilColor = "black";
+          context.strokeStyle = pencilColor;
+          colorInput.value = "";
+          alert("Invalid hex code. Please enter a valid hex code.");
+        }
+        console.log(this.textContent);
+      });
+      displayElement.appendChild(colorStoreElement);
+    }
+
+    changeColor(text);
+    colorInput.value = "";
+  }
+
+  function changeBrushSize(value) {
+    brushSize = parseInt(value);
+    context.lineWidth = brushSize;
+    const brushSizeValue = document.getElementById("brushSizeValue");
+    brushSizeValue.textContent = brushSize;
+  }
+
+  function toggleFillBrush() {
+    isFilling = !isFilling;
+    const fillBrushButton = document.getElementById("fillBrushButton");
+    if (isFilling) {
+      fillBrushButton.classList.add("active");
+    } else {
+      fillBrushButton.classList.remove("active");
+    }
+  }
+
+  function fill(x, y, color) {
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const targetColor = getPixelColor(x, y, data);
+
+    // Checks if the target color is different from the fill color
+    if (targetColor !== color) {
+      const queue = [];
+      queue.push({
+        x: x,
+        y: y,
+      });
+
+      while (queue.length > 0) {
+        const { x, y } = queue.shift();
+
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+          const currentColor = getPixelColor(x, y, data);
+          if (currentColor === targetColor) {
+            setPixelColor(x, y, color, data);
+            queue.push({
+              x: x - 1,
+              y: y,
+            });
+            queue.push({
+              x: x + 1,
+              y: y,
+            });
+            queue.push({
+              x: x,
+              y: y - 1,
+            });
+            queue.push({
+              x: x,
+              y: y + 1,
+            });
+          }
+        }
+      }
+
+      // Put the modified pixel data on the canvas
+      context.putImageData(imageData, 0, 0);
+    }
+  }
+
+  function getPixelColor(x, y, data) {
+    const index = (y * canvas.width + x) * 4;
+    const red = data[index];
+    const green = data[index + 1];
+    const blue = data[index + 2];
+    return rgbToHex(red, green, blue);
+  }
+
+  function setPixelColor(x, y, color, data) {
+    const index = (y * canvas.width + x) * 4;
+    const rgb = hexToRgb(color);
+    data[index] = rgb.r;
+    data[index + 1] = rgb.g;
+    data[index + 2] = rgb.b;
+  }
+
+  function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  }
+
+  function hexToRgb(hex) {
+    const bigint = parseInt(hex.substring(1), 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return {
+      r,
+      g,
+      b,
+    };
+  }
+
+  function saveDrawing() {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL();
+    link.download = document.querySelector("h1").textContent + ".png";
+    link.click();
+  }
+
+  function updatePrivacy() {
+    var checkbox = document.getElementById("privateCheckbox");
+    var isPrivate = checkbox.checked;
+    console.log("isPrivate:", isPrivate);
+  }
+
+  // Converts image to Base64 and uploads it to the gallery and (if its not private) to Showcase
+  function baseDrawing() {
+    const canvas = document.getElementById("drawingCanvas");
+    // Get the canvas image as Base64-encoded data
+    const imageData = canvas.toDataURL();
+    // Just in case
+    console.log(imageData);
+    const titleElement = document.getElementById("drawingTitle");
+    const title = titleElement.innerText;
+    // Check if its private
+    const privateCheckbox = document.getElementById("privateCheckbox");
+    const isPrivate = privateCheckbox.checked;
+
+    const formData = new FormData();
+    formData.append("imageData", imageData);
+    formData.append("title", title);
+    formData.append("isPrivate", isPrivate);
+    const csrftoken = getCookie("csrftoken");
+
+    const headers = {
+      "X-CSRFToken": csrftoken,
+    };
+
+    fetch("/save_to_gallery/", {
+      method: "POST",
+      headers: headers,
+      body: formData,
+    })
+      .then((response) => {
+        if (response.ok) {
+          // Shows an alert if it succeeds or fails
+          artAlert = document.getElementById("artAlert");
+          artAlert.classList.remove("hidden");
+          artAlert.innerHTML = "Art Encoded!";
+          artAlert.classList.add("blink");
+
+          setTimeout(function () {
+            artAlert.classList.remove("blink");
+            artAlert.classList.add("hidden");
+            artAlert.innerHTML = "";
+          }, 3000);
+          console.log("Image submitted successfully!");
+        } else {
+          console.log("Error submitting the image.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
+
+  function getCookie(name) {
+    const cookieValue = document.cookie.match(
+      "(^|;)\\s*" + name + "\\s*=\\s*([^;]+)",
+    );
+    return cookieValue ? cookieValue.pop() : "";
+  }
+
+  // For just getting the Base64 text
+  function getBase() {
+    const canvas = document.getElementById("drawingCanvas");
+    const imageData = canvas.toDataURL();
+    const tempInput = document.createElement("input");
+    tempInput.setAttribute("type", "text");
+    tempInput.setAttribute("value", imageData);
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    tempInput.setSelectionRange(0, 99999); // For mobile
+
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+
+    alert("Image data copied to clipboard!");
+  }
+
+  function importImage() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", handleImageSelect);
+    input.click();
+  }
+
+  // Function to handle image selection
+  function handleImageSelect(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const image = new Image();
+      image.onload = function () {
+        // Create a temporary canvas with the same dimensions as the target canvas
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempContext = tempCanvas.getContext("2d");
+
+        // Draw the image on the temporary canvas, resizing it to fit the canvas dimensions
+        tempContext.drawImage(image, 0, 0, tempCanvas.width, tempCanvas.height);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the resized image from the temporary canvas to the main canvas
+        context.drawImage(tempCanvas, 0, 0);
+        // This approach avoids high resolution images from getting cut
+      };
+      image.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function startDrawingLine() {
+    // Event listeners for mouse actions
+    canvas.removeEventListener("mousedown", startDrawing);
+    canvas.removeEventListener("mousemove", draw);
+    canvas.removeEventListener("mouseup", stopDrawing);
+    canvas.removeEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.removeEventListener("touchstart", startDrawingMobile);
+    canvas.removeEventListener("touchmove", drawMobile);
+    canvas.removeEventListener("touchend", stopDrawing);
+
+    canvas.addEventListener("mousedown", setLineStartPoint);
+    canvas.addEventListener("mouseup", drawLine);
+
+    canvas.addEventListener("touchstart", setLineStartPoint);
+    canvas.addEventListener("touchend", drawLine);
+  }
+
+  function setLineStartPoint(event) {
+    event.preventDefault();
+
+    if (event.type === "mousedown") {
+      lineStartX = event.clientX - canvas.offsetLeft;
+      lineStartY = event.clientY - canvas.offsetTop;
+    } else if (event.type === "touchstart") {
+      lineStartX = event.touches[0].clientX - canvas.offsetLeft;
+      lineStartY = event.touches[0].clientY - canvas.offsetTop;
+    }
+  }
+
+  function drawLine(event) {
+    event.preventDefault();
+
+    const lineEndX =
+      event.type === "mouseup"
+        ? event.clientX - canvas.offsetLeft
+        : event.changedTouches[0].clientX - canvas.offsetLeft;
+    const lineEndY =
+      event.type === "mouseup"
+        ? event.clientY - canvas.offsetTop
+        : event.changedTouches[0].clientY - canvas.offsetTop;
+
+    context.beginPath();
+    context.moveTo(lineStartX, lineStartY);
+    context.lineTo(lineEndX, lineEndY);
+    context.stroke();
+
+    // Remove the event listeners to stop drawing the line after a single line is drawn
+    canvas.removeEventListener("mousedown", setLineStartPoint);
+    canvas.removeEventListener("mouseup", drawLine);
+
+    canvas.removeEventListener("touchstart", setLineStartPoint);
+    canvas.removeEventListener("touchend", drawLine);
+
+    // Event listeners for mouse actions
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.addEventListener("touchstart", startDrawingMobile);
+    canvas.addEventListener("touchmove", drawMobile);
+    canvas.addEventListener("touchend", stopDrawing);
+  }
+
+  function startDrawingCube() {
+    // Event listeners for mouse actions
+    canvas.removeEventListener("mousedown", startDrawing);
+    canvas.removeEventListener("mousemove", draw);
+    canvas.removeEventListener("mouseup", stopDrawing);
+    canvas.removeEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.removeEventListener("touchstart", startDrawingMobile);
+    canvas.removeEventListener("touchmove", drawMobile);
+    canvas.removeEventListener("touchend", stopDrawing);
+
+    canvas.addEventListener("mousedown", setCubeStartPoint);
+    canvas.addEventListener("mouseup", drawCube);
+
+    canvas.addEventListener("touchstart", setCubeStartPoint);
+    canvas.addEventListener("touchend", drawCube);
+  }
+
+  function setCubeStartPoint(event) {
+    event.preventDefault();
+
+    if (event.type === "mousedown") {
+      cubeStartX = event.clientX - canvas.offsetLeft;
+      cubeStartY = event.clientY - canvas.offsetTop;
+    } else if (event.type === "touchstart") {
+      cubeStartX = event.touches[0].clientX - canvas.offsetLeft;
+      cubeStartY = event.touches[0].clientY - canvas.offsetTop;
+    }
+  }
+
+  function drawCube(event) {
+    event.preventDefault();
+
+    const cubeEndX =
+      event.type === "mouseup"
+        ? event.clientX - canvas.offsetLeft
+        : event.changedTouches[0].clientX - canvas.offsetLeft;
+    const cubeEndY =
+      event.type === "mouseup"
+        ? event.clientY - canvas.offsetTop
+        : event.changedTouches[0].clientY - canvas.offsetTop;
+
+    const cubeWidth = Math.abs(cubeEndX - cubeStartX);
+    const cubeHeight = Math.abs(cubeEndY - cubeStartY);
+    const cubeSize = Math.min(cubeWidth, cubeHeight);
+
+    const cubeX = cubeStartX < cubeEndX ? cubeStartX : cubeStartX - cubeSize;
+    const cubeY = cubeStartY < cubeEndY ? cubeStartY : cubeStartY - cubeSize;
+
+    context.beginPath();
+    context.rect(cubeX, cubeY, cubeSize, cubeSize);
+    context.stroke();
+
+    // Remove the event listeners to stop drawing the cube after a single cube is drawn
+    canvas.removeEventListener("mousedown", setCubeStartPoint);
+    canvas.removeEventListener("mouseup", drawCube);
+
+    canvas.removeEventListener("touchstart", setCubeStartPoint);
+    canvas.removeEventListener("touchend", drawCube);
+
+    // Event listeners for mouse actions
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.addEventListener("touchstart", startDrawingMobile);
+    canvas.addEventListener("touchmove", drawMobile);
+    canvas.addEventListener("touchend", stopDrawing);
+  }
+
+  function startDrawingCircle() {
+    // Event listeners for mouse actions
+    canvas.removeEventListener("mousedown", startDrawing);
+    canvas.removeEventListener("mousemove", draw);
+    canvas.removeEventListener("mouseup", stopDrawing);
+    canvas.removeEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.removeEventListener("touchstart", startDrawingMobile);
+    canvas.removeEventListener("touchmove", drawMobile);
+    canvas.removeEventListener("touchend", stopDrawing);
+
+    canvas.addEventListener("mousedown", setCircleCenter);
+    canvas.addEventListener("mouseup", drawCircle);
+
+    canvas.addEventListener("touchstart", setCircleCenter);
+    canvas.addEventListener("touchend", drawCircle);
+  }
+
+  function setCircleCenter(event) {
+    event.preventDefault();
+
+    if (event.type === "mousedown") {
+      circleCenterX = event.clientX - canvas.offsetLeft;
+      circleCenterY = event.clientY - canvas.offsetTop;
+    } else if (event.type === "touchstart") {
+      circleCenterX = event.touches[0].clientX - canvas.offsetLeft;
+      circleCenterY = event.touches[0].clientY - canvas.offsetTop;
+    }
+  }
+
+  function drawCircle(event) {
+    event.preventDefault();
+
+    const circleEndX =
+      event.type === "mouseup"
+        ? event.clientX - canvas.offsetLeft
+        : event.changedTouches[0].clientX - canvas.offsetLeft;
+    const circleEndY =
+      event.type === "mouseup"
+        ? event.clientY - canvas.offsetTop
+        : event.changedTouches[0].clientY - canvas.offsetTop;
+
+    const radius = Math.sqrt(
+      Math.pow(circleEndX - circleCenterX, 2) +
+        Math.pow(circleEndY - circleCenterY, 2),
+    );
+
+    context.beginPath();
+    context.arc(circleCenterX, circleCenterY, radius, 0, 2 * Math.PI);
+    context.stroke();
+
+    // Remove the event listeners to stop drawing the circle after a single circle is drawn
+    canvas.removeEventListener("mousedown", setCircleCenter);
+    canvas.removeEventListener("mouseup", drawCircle);
+
+    canvas.removeEventListener("touchstart", setCircleCenter);
+    canvas.removeEventListener("touchend", drawCircle);
+
+    // Event listeners for mouse actions
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseout", stopDrawing);
+
+    // Event listeners for touch actions
+    canvas.addEventListener("touchstart", startDrawingMobile);
+    canvas.addEventListener("touchmove", drawMobile);
+    canvas.addEventListener("touchend", stopDrawing);
+  }
+
+  function replayDrawing() {
+    context.beginPath();
+
+    drawingData.forEach((point, index) => {
+      if (index === 0) {
+        context.moveTo(point.x, point.y);
+      } else {
+        context.lineTo(point.x, point.y);
+      }
+    });
+
+    context.stroke();
+  }
+
+  function toggleRecording() {
+    isRecording = !isRecording;
+    const recordButton = document.getElementById("recordButton");
+    const recordingIndicator = document.getElementById("recordingIndicator");
+
+    if (isRecording) {
+      recordButton.textContent = "Stop";
+      canvas.addEventListener("mousemove", recordDrawingData);
+      recordingIndicator.style.display = "inline-block";
+      recordingIndicator.classList.add("blink"); // Add the blink class to start the blinking effect
+    } else {
+      recordButton.textContent = "Start";
+      canvas.removeEventListener("mousemove", recordDrawingData);
+      recordingIndicator.style.display = "none";
+      recordingIndicator.classList.remove("blink"); // Remove the blink class to stop the blinking effect
+    }
+  }
+
+  function recordDrawingData(event) {
+    if (isRecording && event.buttons === 1) {
+      const x = event.clientX - canvas.offsetLeft;
+      const y = event.clientY - canvas.offsetTop;
+      drawingData.push({
+        x,
+        y,
+      });
+    }
+  }
+
+  function resetDrawing() {
+    drawingData.length = 0; // Reset the drawing data by emptying the array
+  }
+
+  function changeBrushColor(color) {
+    context.strokeStyle = color;
+  }
+
+  function customizeGradient() {
+    const startColor = prompt("Enter the gradient start color:", "#000000");
+    if (startColor === null) {
+      return; // User clicked cancel, exit the function
+    }
+    const endColor = prompt("Enter the gradient end color:", "#FFFFFF");
+    if (endColor === null) {
+      return; // User clicked cancel, exit the function
+    }
+
+    // Create a linear gradient object
+    const gradient = context.createLinearGradient(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    gradient.addColorStop(0, startColor); // Set the start color
+    gradient.addColorStop(1, endColor); // Set the end color
+
+    // Apply the gradient to the canvas
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+</script>
+{% endblock %}
