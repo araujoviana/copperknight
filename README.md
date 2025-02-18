@@ -1,6 +1,6 @@
 # copperknight
 
-> THIS IS AN OLD PROJECT FOR [CS50W](https://cs50.harvard.edu/web/2020/)
+> This is a 2020 project for [CS50W](https://cs50.harvard.edu/web/2020/).
 
 ## Installation and usage
 
